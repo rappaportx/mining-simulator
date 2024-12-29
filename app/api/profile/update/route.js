@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next";
-import prisma from "@/lib/prisma";
+import prisma from '../../../lib/prisma';  // Using relative path
 
 export async function POST(req) {
   try {
