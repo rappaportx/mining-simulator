@@ -1,7 +1,7 @@
-// components/MiningVisualizer.js
 "use client";
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Timer, Hash, Cpu, GitCommit } from 'lucide-react';
+import { Timer, Hash, Cpu } from 'lucide-react';
 
 const MiningVisualizer = () => {
   const [miningStats, setMiningStats] = useState({
@@ -30,7 +30,35 @@ const MiningVisualizer = () => {
     hashCount: 0
   });
 
-  // Mining logic implementation
+  useEffect(() => {
+    let intervalId;
+    if (miningStats.isRunning) {
+      intervalId = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - performanceRef.current.lastUpdate;
+        const hashRate = performanceRef.current.hashCount / (elapsed / 1000);
+        
+        setPerformance(prev => ({
+          ...prev,
+          hashesPerSecond: hashRate.toFixed(2),
+          totalRuntime: ((now - miningStats.startTime) / 1000).toFixed(1),
+          avgTimePerBlock: miningStats.blocksMined > 0 
+            ? ((now - miningStats.startTime) / 1000 / miningStats.blocksMined).toFixed(1)
+            : 'N/A'
+        }));
+
+        performanceRef.current = {
+          lastUpdate: now,
+          hashCount: 0
+        };
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [miningStats.isRunning, miningStats.blocksMined, miningStats.startTime]);
+
   useEffect(() => {
     if (!miningStats.isRunning) return;
 
@@ -68,7 +96,6 @@ const MiningVisualizer = () => {
     return () => clearInterval(miningInterval);
   }, [miningStats.isRunning, miningStats.difficulty]);
 
-  // Helper functions
   const generateHash = (nonce, extraNonce) => {
     const data = `block_${nonce}_${extraNonce}_${Date.now()}`;
     return Array.from(new TextEncoder().encode(data))
@@ -84,7 +111,6 @@ const MiningVisualizer = () => {
   return (
     <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg">
       <div className="space-y-6">
-        {/* Performance Metrics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-blue-50 rounded-lg">
             <h3 className="font-bold flex items-center gap-2">
@@ -111,19 +137,30 @@ const MiningVisualizer = () => {
           </div>
         </div>
 
-        {/* Mining Controls */}
         <div className="flex justify-center">
           <button
             className={`px-6 py-2 rounded-lg ${
               miningStats.isRunning ? 'bg-red-500' : 'bg-green-500'
             } text-white font-semibold`}
-            onClick={() => setMiningStats(prev => ({ ...prev, isRunning: !prev.isRunning }))}
+            onClick={() => {
+              if (!miningStats.isRunning) {
+                setMiningStats(prev => ({ 
+                  ...prev, 
+                  isRunning: true,
+                  startTime: Date.now()
+                }));
+              } else {
+                setMiningStats(prev => ({ 
+                  ...prev, 
+                  isRunning: false 
+                }));
+              }
+            }}
           >
             {miningStats.isRunning ? 'Stop Mining' : 'Start Mining'}
           </button>
         </div>
 
-        {/* Recent Blocks */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-bold mb-2">Recent Blocks</h3>
           <div className="space-y-2">
