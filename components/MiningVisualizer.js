@@ -1,4 +1,5 @@
 // components/MiningVisualizer.js
+"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { Timer, Hash, Cpu, GitCommit } from 'lucide-react';
 
