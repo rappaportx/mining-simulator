@@ -1,3 +1,4 @@
+"use client";
 import MiningVisualizer from '../components/MiningVisualizer';
 
 export default function Home() {
